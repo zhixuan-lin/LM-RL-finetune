@@ -2,7 +2,7 @@ importlib-metadata<5.0
 spacy==3.0.6
 bert-score==0.3.11
 BLEURT @ git+https://github.com/google-research/bleurt.git@c6f2375c7c178e1480840cf27cb9e2af851394f9
-datasets==2.5.1
+datasets==2.10.1
 gem-metrics @ git+https://github.com/GEM-benchmark/GEM-metrics.git@431a8174bd6b3637e8d6118bfad2983e39e99733
 gym==0.21.0
 jsonlines==3.0.0
@@ -14,7 +14,7 @@ torch==1.11.0
 torchvision==0.12.0
 tqdm==4.64.0
 transformers==4.18.0
-wandb==0.12.15
+wandb==0.14.0
 jsonlines==3.0.0
 rouge_score==0.0.4
 sacrebleu==2.2.0

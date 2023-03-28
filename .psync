@@ -1,0 +1,5 @@
+ignores: []
+remote: ~/code
+ssh:
+  host: mila
+  username: zhixuan.lin

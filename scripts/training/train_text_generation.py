@@ -65,10 +65,13 @@ if __name__ == "__main__":
         "--experiment_name",
         type=str,
         help="WANDB experiment name",
-        default="rl4lm_experiment",
+        default=None,
     )
     parser.add_argument(
         "--entity_name", type=str, help="WANDB entity name", default=None
+    )
+    parser.add_argument(
+        "--tags", type=str, nargs='*', help="WANDB tags", default=None
     )
     parser.add_argument(
         "--base_path_to_store_results",
@@ -77,7 +80,7 @@ if __name__ == "__main__":
         default=os.getcwd(),
     )
     parser.add_argument(
-        "--log_to_wandb", action="store_true", help="Whether to use wandb logging"
+        "--log_to_wandb", action="store_true", default=True, help="Whether to use wandb logging"
     )
     args = parser.parse_args()
 

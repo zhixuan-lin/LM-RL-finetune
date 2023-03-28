@@ -33,10 +33,11 @@ class Tracker:
 
     def _init(self):
         # create a folder
-        self._run_path = os.path.join(
-            self._base_path_to_store_results,
-            self._project_name,
-            self._experiment_name)
+        # self._run_path = os.path.join(
+            # self._base_path_to_store_results,
+            # self._project_name,
+            # self._experiment_name)
+        self._run_path = self._base_path_to_store_results
         os.makedirs(self._run_path, exist_ok=True)
 
         # store also the config into it
