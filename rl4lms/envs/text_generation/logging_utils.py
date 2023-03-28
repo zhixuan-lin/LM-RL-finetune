@@ -43,7 +43,7 @@ class Tracker:
         # store also the config into it
         config_path = os.path.join(self._run_path, "config.json")
         with open(config_path, "w") as fp:
-            json.dump(self._config, fp)
+            json.dump(self._config, fp, indent=2)
 
         # init logger
         log_path = os.path.join(self._run_path, "log.txt")
@@ -72,7 +72,7 @@ class Tracker:
         prediction_file_at_epoch = os.path.join(
             self._run_path, f"epoch_{epoch}_{split_name}_split_predictions.json")
         with open(prediction_file_at_epoch, "w") as fp:
-            json.dump(predictions, fp)
+            json.dump(predictions, fp, indent=2)
 
         # randomly display few predictions for logging
         predictions_ = copy.deepcopy(predictions)

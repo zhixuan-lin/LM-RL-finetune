@@ -2,12 +2,17 @@ import os
 from argparse import ArgumentParser
 
 import yaml
+from omegaconf import OmegaConf
+from typing import List
 
 from rl4lms.envs.text_generation.logging_utils import Tracker
 from rl4lms.envs.text_generation.training_utils import (
     OnPolicyTrainer,
     SupervisedTrainer,
 )
+import torch
+import numpy as np
+import random
 
 
 def main(
@@ -17,11 +22,24 @@ def main(
     base_path_to_store_results: str,
     entity_name: str,
     log_to_wandb: bool,
+    cli_args: List[str],
+    seed: int
 ):
 
+    # Random seed
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
     # load the config file
-    with open(config_path, "r") as fp:
-        config = yaml.safe_load(fp)
+    # with open(config_path, "r") as fp:
+        # config = yaml.safe_load(fp)
+    config = OmegaConf.load(config_path)
+    cli_config = OmegaConf.from_dotlist(cli_args)
+    config = OmegaConf.merge(config, cli_config)
+    # Convert to dict
+    config = OmegaConf.to_object(config)
+    config['seed'] = seed
 
     # load tracker
     tracker = Tracker(
@@ -77,12 +95,16 @@ if __name__ == "__main__":
         "--base_path_to_store_results",
         type=str,
         help="Base path to store experiment results",
-        default=os.getcwd(),
+        default='./debug',
     )
     parser.add_argument(
         "--log_to_wandb", action="store_true", default=True, help="Whether to use wandb logging"
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Random seed"
+    )
+
+    args, rest_args = parser.parse_known_args()
 
     main(
         args.config_path,
@@ -91,4 +113,6 @@ if __name__ == "__main__":
         args.base_path_to_store_results,
         args.entity_name,
         args.log_to_wandb,
+        rest_args,
+        args.seed
     )
