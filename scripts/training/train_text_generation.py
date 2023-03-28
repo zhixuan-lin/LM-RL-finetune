@@ -35,7 +35,10 @@ def main(
     # with open(config_path, "r") as fp:
         # config = yaml.safe_load(fp)
     config = OmegaConf.load(config_path)
-    cli_config = OmegaConf.from_dotlist(cli_args)
+    cli_config = OmegaConf.from_dotlist(
+        [arg for arg in cli_args if len(arg.strip()) > 0])
+    # Sanity check for first level keys
+    assert set(cli_config).issubset(set(config)), f'{set(cli_config)} is not a subset of {set(config)}'
     config = OmegaConf.merge(config, cli_config)
     # Convert to dict
     config = OmegaConf.to_object(config)

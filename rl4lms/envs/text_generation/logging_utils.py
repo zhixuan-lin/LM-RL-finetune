@@ -10,6 +10,9 @@ import logging
 import copy
 import random
 from rich.logging import RichHandler
+from datetime import datetime
+import uuid
+import shutil
 
 
 class Tracker:
@@ -39,6 +42,17 @@ class Tracker:
             # self._experiment_name)
         self._run_path = self._base_path_to_store_results
         os.makedirs(self._run_path, exist_ok=True)
+
+        # Move everything to archive
+        date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_id = str(uuid.uuid4())[:8]
+        archive_dir = os.path.join(self._run_path, f'archive_{date_str}_{unique_id}')
+
+        os.makedirs(archive_dir, exist_ok=False)
+        file_names = [f for f in os.listdir(self._run_path) if not f.startswith('archive')]
+        for file_name in file_names:
+            shutil.move(os.path.join(self._run_path, file_name), os.path.join(archive_dir, file_name))
+
 
         # store also the config into it
         config_path = os.path.join(self._run_path, "config.json")

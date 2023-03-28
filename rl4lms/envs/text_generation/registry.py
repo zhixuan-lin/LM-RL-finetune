@@ -9,6 +9,7 @@ from rl4lms.algorithms.ppo.ppo import PPO
 from rl4lms.algorithms.trpo import TRPO
 from rl4lms.data_pools.custom_text_generation_pools import (
     IMDB,
+    IMDBFixed,
     WMT,
     CNNDailyMail,
     CommonGen,
@@ -87,6 +88,7 @@ class DataPoolRegistry:
     _registry = {
         "dummy_pool": TestTextGenPool,
         "imdb": IMDB,
+        "imdb_fixed": IMDBFixed,
         "commongen": CommonGen,
         "totto": ToTTo,
         "cnn_daily_mail": CNNDailyMail,

@@ -237,6 +237,41 @@ class IMDB(TextGenPool):
         pool_instance = cls(samples)
         return pool_instance
 
+class IMDBFixed(TextGenPool):
+    """
+    IMDB Dataset for sentiment continuation task
+
+    The IMDB datasets defined above has two issues:
+    - train and validation set can overlap
+    - they always change
+    """
+    @classmethod
+    def prepare(cls, split: str, seed: int = 0):
+        dataset = load_dataset("imdb")
+        if split in ["train", "val"]:
+            dataset_split = dataset["train"].shuffle(seed=seed)
+            train_ratio = 0.8
+            train_index = int(len(dataset_split) * train_ratio)
+            dataset_split = dataset_split[:train_index] if split == "train" else dataset_split[train_index:]
+        else:
+            dataset_split = dataset[split].shuffle(seed=seed)
+            dataset_split = dataset_split[:5000]
+
+        samples = []
+        for ix, text in enumerate(dataset_split["text"]):
+
+            # here we consider 50% of tokens as prompt
+            prompt_text = text.split(" ")
+            prompt_text = " ".join(prompt_text[:int(len(prompt_text) * 0.5)])
+
+            sample = Sample(id=f"{split}_{ix}",
+                            prompt_or_input_text=prompt_text,
+                            references=[text]
+                            )
+            samples.append(sample)
+        pool_instance = cls(samples)
+        return pool_instance
+
 
 class IMDBForSeq2Seq(TextGenPool):
     """
