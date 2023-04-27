@@ -4,7 +4,7 @@
 This projects improves the KL penalty optimization in RL finetuning of language model by 1) using a gradient estimator that computes the KL penlty term in the PPO proxy
 objective analytically and 2) using analytic KL divergence in the definition of the KL-augmented reward.
 
-This repository is a fork of [RL4LMs](https://github.com/allenai/RL4LMs).
+This repository is a fork of [RL4LMs](https://github.com/allenai/RL4LMs). Our main implementaion is located at https://github.com/zhixuan-lin/LM-RL-finetune/tree/main/rl4lms/algorithms/ppo_kl.
 
 ## Dependency
 
