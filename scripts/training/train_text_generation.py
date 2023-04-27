@@ -21,9 +21,10 @@ def main(
     experiment_name: str,
     base_path_to_store_results: str,
     entity_name: str,
+    tags: List[str],
     log_to_wandb: bool,
     cli_args: List[str],
-    seed: int
+    seed: int,
 ):
 
     # Random seed
@@ -43,15 +44,17 @@ def main(
     # Convert to dict
     config = OmegaConf.to_object(config)
     config['seed'] = seed
+    config['tags'] = tags
 
     # load tracker
     tracker = Tracker(
-        base_path_to_store_results,
-        config,
-        project_name,
-        experiment_name,
-        entity_name,
-        log_to_wandb,
+        base_path_to_store_results=base_path_to_store_results,
+        run_config=config,
+        project_name=project_name,
+        experiment_name=experiment_name,
+        entity_name=entity_name,
+        tags=tags,
+        wandb_log=log_to_wandb,
     )
 
     # instantiate the trainer here
@@ -92,7 +95,7 @@ if __name__ == "__main__":
         "--entity_name", type=str, help="WANDB entity name", default=None
     )
     parser.add_argument(
-        "--tags", type=str, nargs='*', help="WANDB tags", default=None
+        "--tags", type=str, help="WANDB tags", default=None
     )
     parser.add_argument(
         "--base_path_to_store_results",
@@ -110,12 +113,13 @@ if __name__ == "__main__":
     args, rest_args = parser.parse_known_args()
 
     main(
-        args.config_path,
-        args.project_name,
-        args.experiment_name,
-        args.base_path_to_store_results,
-        args.entity_name,
-        args.log_to_wandb,
-        rest_args,
-        args.seed
+        config_path=args.config_path,
+        project_name=args.project_name,
+        experiment_name=args.experiment_name,
+        base_path_to_store_results=args.base_path_to_store_results,
+        entity_name=args.entity_name,
+        tags=args.tags,
+        log_to_wandb=args.log_to_wandb,
+        cli_args=rest_args,
+        seed=args.seed
     )

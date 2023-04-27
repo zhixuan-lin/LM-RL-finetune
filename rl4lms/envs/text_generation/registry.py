@@ -6,6 +6,7 @@ from stable_baselines3.common.on_policy_algorithm import OnPolicyAlgorithm
 from rl4lms.algorithms.a2c.a2c import A2C
 from rl4lms.algorithms.nlpo import NLPO
 from rl4lms.algorithms.ppo.ppo import PPO
+from rl4lms.algorithms.ppo_kl.ppo_kl import PPOKL
 from rl4lms.algorithms.trpo import TRPO
 from rl4lms.data_pools.custom_text_generation_pools import (
     IMDB,
@@ -23,7 +24,7 @@ from rl4lms.data_pools.custom_text_generation_pools import (
     DailyDialog,
 )
 from rl4lms.data_pools.text_generation_pool import TextGenPool
-from rl4lms.envs.text_generation.alg_wrappers import wrap_onpolicy_alg
+from rl4lms.envs.text_generation.alg_wrappers import wrap_onpolicy_alg, wrap_onpolicy_kl_alg
 from rl4lms.envs.text_generation.metric import (
     BaseMetric,
     BERTScoreMetric,
@@ -206,6 +207,7 @@ class AlgorithmRegistry:
         "nlpo": NLPO,
         "trpo": TRPO,
         "ppo": PPO,
+        "ppo_kl": PPOKL,
         "a2c": A2C,
     }
 
@@ -231,6 +233,7 @@ class WrapperRegistry:
         "nlpo": wrap_onpolicy_alg,
         "trpo": wrap_onpolicy_alg,
         "ppo": wrap_onpolicy_alg,
+        "ppo_kl": wrap_onpolicy_kl_alg,
         "a2c": wrap_onpolicy_alg,
     }
 

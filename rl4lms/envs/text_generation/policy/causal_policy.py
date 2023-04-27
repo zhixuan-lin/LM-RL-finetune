@@ -161,6 +161,7 @@ class CausalLMActorCriticPolicy(LMActorCriticPolicy, ActorCriticWarmStartMixin):
             log_probs=log_prob,
             entropy=entropy,
             past_model_kwargs=past_model_kwargs,
+            dist=dist.distribution
         )
 
         return policy_outputs
@@ -216,6 +217,7 @@ class CausalLMActorCriticPolicy(LMActorCriticPolicy, ActorCriticWarmStartMixin):
             values=value_outputs.values,
             log_prob=policy_outputs.log_probs,
             entropy=policy_outputs.entropy,
+            dist=policy_outputs.dist
         )
         return eval_outputs
 
@@ -251,7 +253,7 @@ class CausalLMActorCriticPolicy(LMActorCriticPolicy, ActorCriticWarmStartMixin):
             is_encoder_decoder=self.is_encoder_decoder(self._ref_model),
         )
 
-        ref_policy_outputs = RefPolicyOutput(log_prob, past_model_kwargs)
+        ref_policy_outputs = RefPolicyOutput(log_prob, past_model_kwargs, dist.distribution)
         return ref_policy_outputs
 
     def get_policy_first_device(self):

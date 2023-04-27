@@ -22,6 +22,7 @@ class Tracker:
                  project_name: str,
                  experiment_name: str,
                  entity_name: str = None,
+                 tags: List[str] = None,
                  wandb_log: bool = False,
                  log_level: int = logging.DEBUG,
         ):
@@ -31,6 +32,7 @@ class Tracker:
         self._experiment_name = experiment_name
         self._project_name = project_name
         self._entity_name = entity_name
+        self._tags = tags
         self._wandb_log = wandb_log
         self._init()
 
@@ -76,7 +78,8 @@ class Tracker:
                 entity=self._entity_name,
                 project=self._project_name,
                 name=self._experiment_name,
-                config=self._config
+                config=self._config,
+                tags=[self._tags] if self._tags is not None else None
             )
 
     def log_predictions(self, epoch: int,
@@ -97,21 +100,23 @@ class Tracker:
 
         # for wandb logging, we create a table consisting of predictions
         # we can create one table per split per epoch
-        if self._wandb_log and len(predictions) > 0:
 
-            def to_df(predictions):
-                columns = predictions[0].keys()
-                data_by_column = defaultdict(list)
-                for item in predictions:
-                    for column in columns:
-                        data_by_column[column].append(item.get(column, ""))
-                data_df = pd.DataFrame(data_by_column)
-                return data_df
+        # This is too slow and creates a artifacts
+        # if self._wandb_log and len(predictions) > 0:
 
-            predictions_as_df = to_df(predictions)
-            predictions_table_at_epoch = wandb.Table(data=predictions_as_df)
-            self._wandb_run.log({
-                f"{split_name}_predictions_at_epoch_{epoch}": predictions_table_at_epoch})
+        #     def to_df(predictions):
+        #         columns = predictions[0].keys()
+        #         data_by_column = defaultdict(list)
+        #         for item in predictions:
+        #             for column in columns:
+        #                 data_by_column[column].append(item.get(column, ""))
+        #         data_df = pd.DataFrame(data_by_column)
+        #         return data_df
+
+        #     predictions_as_df = to_df(predictions)
+        #     predictions_table_at_epoch = wandb.Table(data=predictions_as_df)
+        #     self._wandb_run.log({
+        #         f"{split_name}_predictions_at_epoch_{epoch}": predictions_table_at_epoch})
 
     def log_metrics(self, epoch: int,
                     split_name: str,

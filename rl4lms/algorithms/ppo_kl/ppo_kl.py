@@ -14,7 +14,7 @@ from rl4lms.envs.text_generation.logging_utils import Tracker
 from rl4lms.envs.text_generation.policy.base_policy import EvaluateActionsOutput
 
 
-class PPO(OnPolicyAlgorithm):
+class PPOKL(OnPolicyAlgorithm):
     """
     Proximal Policy Optimization algorithm (PPO) (clip version)
 
@@ -78,6 +78,7 @@ class PPO(OnPolicyAlgorithm):
         policy: Union[str, Type[ActorCriticPolicy]],
         env: Union[GymEnv, str],
         tracker: Tracker,
+        analytic_kl_grad: bool,
         learning_rate: Union[float, Schedule] = 3e-4,
         n_steps: int = 2048,
         batch_size: int = 64,
@@ -160,6 +161,7 @@ class PPO(OnPolicyAlgorithm):
         self.clip_range_vf = clip_range_vf
         self.normalize_advantage = normalize_advantage
         self.target_kl = target_kl
+        self.analytic_kl_grad = analytic_kl_grad
         self._tracker = tracker
 
         if _init_setup_model:
@@ -195,6 +197,8 @@ class PPO(OnPolicyAlgorithm):
         pg_losses, value_losses = [], []
         clip_fractions = []
 
+        if self.analytic_kl_grad:
+            kl_losses = []
         continue_training = True
 
         # train for n_epochs epochs
@@ -214,13 +218,36 @@ class PPO(OnPolicyAlgorithm):
 
                 evaluation_output: EvaluateActionsOutput = self.policy.evaluate_actions(
                     rollout_data.observations, actions)
-                values, log_prob, entropy = evaluation_output.values, evaluation_output.log_prob, evaluation_output.entropy
+                values, log_prob, entropy, dist = (
+                    evaluation_output.values, evaluation_output.log_prob,
+                    evaluation_output.entropy, evaluation_output.dist
+                )
+
+
+
                 values = values.flatten()
-                # Normalize advantage
-                advantages = rollout_data.advantages
-                if self.normalize_advantage:
-                    advantages = (advantages - advantages.mean()
-                                  ) / (advantages.std() + 1e-8)
+
+                if self.analytic_kl_grad:
+                    # There is no need to add first step KL when using analytic grad
+                    advantages = rollout_data.advantages
+                    kl_loss = th.distributions.kl_divergence(dist, th.distributions.Categorical(logits=rollout_data.ref_logits))
+                    # Normalize advantage
+                    if self.normalize_advantage:
+                        std = (advantages.std() + 1e-8)
+                        advantages = (advantages - advantages.mean()
+                                      ) / std
+                    kl_loss = kl_loss.mean()
+                    kl_losses.append(kl_loss.item())
+                    # Need to scale down kl_loss as well
+                    kl_loss = kl_loss / std
+                else:
+                    # The advantage does not contain first step KL. We add it here
+                    advantages = (rollout_data.advantages -
+                                  self.rollout_buffer.kl_coeff * (rollout_data.old_log_prob - rollout_data.ref_log_probs))
+                    # Normalize advantage
+                    if self.normalize_advantage:
+                        advantages = (advantages - advantages.mean()
+                                      ) / (advantages.std() + 1e-8)
 
                 # ratio between old and new policy, should be one at the first iteration
                 ratio = th.exp(log_prob - rollout_data.old_log_prob)
@@ -264,7 +291,10 @@ class PPO(OnPolicyAlgorithm):
 
                 entropy_losses.append(entropy_loss.item())
 
-                loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
+                if self.analytic_kl_grad:
+                    loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss + self.rollout_buffer.kl_coeff * kl_loss
+                else:
+                    loss = policy_loss + self.ent_coef * entropy_loss + self.vf_coef * value_loss
 
                 # Calculate approximate form of reverse KL Divergence for early stopping
                 # see issue #417: https://github.com/DLR-RM/stable-baselines3/issues/417
@@ -299,6 +329,8 @@ class PPO(OnPolicyAlgorithm):
             self.rollout_buffer.values.flatten(), self.rollout_buffer.returns.flatten())
 
         # Logs
+        if self.analytic_kl_grad:
+            self.logger.record("train/kl_loss", np.mean(kl_losses))
         self.logger.record("train/entropy_loss", np.mean(entropy_losses))
         self.logger.record("train/policy_gradient_loss", np.mean(pg_losses))
         self.logger.record("train/value_loss", np.mean(value_losses))
@@ -322,6 +354,8 @@ class PPO(OnPolicyAlgorithm):
             "ppo/value_loss": np.mean(value_losses).item(),
             "ppo/approx_kl": np.mean(approx_kl_divs).item(),
         }
+        if self.analytic_kl_grad:
+            train_info.update({ "ppo/kl_loss": np.mean(kl_losses).item()})
 
         self._tracker.log_training_infos(train_info)
 
@@ -333,10 +367,10 @@ class PPO(OnPolicyAlgorithm):
         eval_env: Optional[GymEnv] = None,
         eval_freq: int = -1,
         n_eval_episodes: int = 5,
-        tb_log_name: str = "PPO",
+        tb_log_name: str = "PPOKL",
         eval_log_path: Optional[str] = None,
         reset_num_timesteps: bool = True,
-    ) -> "PPO":
+    ) -> "PPOKL":
 
         return super().learn(
             total_timesteps=total_timesteps,

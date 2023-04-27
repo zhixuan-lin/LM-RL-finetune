@@ -118,7 +118,8 @@ def build_alg(alg_config: Dict[str, Any],
     alg = wrapper(alg_cls, alg_kwargs,
                   alg_config["kl_div"]["coeff"], tracker,
                   alg_config["kl_div"].get("target_kl", None),
-                  alg_config["kl_div"].get("norm_reward", False))
+                  alg_config["kl_div"].get("norm_reward", False),
+                  alg_config["kl_div"].get("analytic_kl_reward", False))
     alg.load_from_dict(alg_state)
     return alg
 
@@ -211,7 +212,8 @@ class OnPolicyTrainer(TrainerWarmStartMixin):
 
             # evaluate on val set in the given intervals
             if (epoch + 1) % self._train_eval_config["eval_every"] == 0:
-                self._evaluate_on_datapools(epoch=epoch, splits=["val"])
+                # Also test set, for Pareto plot
+                self._evaluate_on_datapools(epoch=epoch, splits=["val", "test"])
 
         # finally evaluate on val and test samples
         self._evaluate_on_datapools(epoch=epoch)

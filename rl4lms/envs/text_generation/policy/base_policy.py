@@ -33,6 +33,8 @@ class EvaluateActionsOutput:
     log_prob: torch.tensor
     # entropy of action dist
     entropy: torch.tensor
+    # distribution
+    dist: Optional[torch.distributions.Categorical] = None
 
 
 @dataclass
@@ -51,6 +53,8 @@ class PolicyOutput:
     entropy: torch.tensor
     # cached policy activations for sequential forward passes
     past_model_kwargs: torch.tensor
+    # distribution
+    dist: Optional[torch.distributions.Categorical] = None
 
 
 @dataclass
@@ -63,6 +67,8 @@ class RefPolicyOutput:
     log_probs: torch.tensor
     # cached policy activations for sequential forward passes
     past_model_kwargs: torch.tensor
+    # distribution
+    dist: Optional[torch.distributions.Categorical] = None
 
 
 @dataclass
