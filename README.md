@@ -29,6 +29,7 @@ conda activate RLLM
 
 ## Running
 
+Execute the following command to run the PPO + analytic KL grad + analytic KL reward method. The pretrained model and the dataset will be downloaded the default HuggingFace folder.
 
 ```
 python scripts/training/train_text_generation.py \
